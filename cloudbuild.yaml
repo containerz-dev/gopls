@@ -1,0 +1,19 @@
+steps:
+  - name: docker.io/docker:19.03
+    entrypoint: 'sh'
+    args:
+    - '-c'
+    - |
+      docker container run -i --privileged -v=/workspace:/workspace --entrypoint=buildctl-daemonless.sh docker.io/moby/buildkit:master \
+        build \
+        --frontend=dockerfile.v0 \
+        --opt=build-arg:GOLANG_VERSION=1.13 --opt=build-arg:ALPINE_VERSION=3.10 \
+        --opt=target=gopls --opt=filename=Dockerfile \
+        --local=context=/workspace --local=dockerfile=/workspace \
+        --output=type=docker,name=gcr.io/$PROJECT_ID/gopls:latest \
+        | docker image load
+
+images:
+  - gcr.io/$PROJECT_ID/gopls:latest
+
+timeout: 1800s
